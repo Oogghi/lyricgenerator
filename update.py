@@ -3,6 +3,9 @@ import os
 import shutil
 import zipfile
 
+# 📌 Se placer dans le dossier du script
+os.chdir(os.path.dirname(os.path.abspath(__file__)))
+
 # URL du fichier version.txt sur GitHub
 GITHUB_VERSION_URL = "https://raw.githubusercontent.com/Oogghi/lyricgenerator/main/version.txt"
 # URL de l'archive ZIP du dépôt GitHub
