@@ -34,7 +34,7 @@ def download_update():
 
     extracted_folder = os.path.join("update_temp", os.listdir("update_temp")[0])
 
-    # Supprimer les anciens fichiers sauf updater.py et updater.bat
+    # Supprimer les anciens fichiers sauf update.py et updater.bat
     print("[Updater] Suppression des anciens fichiers...")
     for item in os.listdir("."):
         if item not in ["update.py", "updater.bat", "update.zip", "update_temp", "__pycache__"]:
@@ -46,14 +46,33 @@ def download_update():
             except Exception as e:
                 print(f"Erreur suppression {item}: {e}")
 
-    # Copier tous les nouveaux fichiers
+    # Copier tous les fichiers sauf update.py (pour éviter conflit)
     print("[Updater] Copie des nouveaux fichiers...")
     for item in os.listdir(extracted_folder):
-        shutil.move(os.path.join(extracted_folder, item), ".")
+        src_path = os.path.join(extracted_folder, item)
+        dst_path = os.path.join(".", item)
+
+        if os.path.exists(dst_path) and item != "update.py":
+            if os.path.isdir(dst_path):
+                shutil.rmtree(dst_path)
+            else:
+                os.remove(dst_path)
+
+        if item == "update.py":
+            print("[Updater] Ignorer update.py pendant la copie.")
+            continue  # On ne touche pas update.py pendant l'exécution
+
+        if os.path.isdir(src_path):
+            shutil.copytree(src_path, dst_path)
+        else:
+            shutil.copy2(src_path, dst_path)
 
     shutil.rmtree("update_temp")
     os.remove("update.zip")
     print("[Updater] Mise à jour terminée.")
+
+    # Relancer main.py
+    os.system("python main.py")
 
 if __name__ == "__main__":
     print("[Updater] Vérification de la version...")
