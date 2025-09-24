@@ -1,7 +1,7 @@
 import sys
 import json
 import os
-import yt_dlp
+# import yt_dlp
 import re
 from PyQt6.QtWidgets import (
     QApplication, QWidget, QLabel, QPushButton, QLineEdit, QTextEdit,
@@ -721,5 +721,4 @@ if __name__ == "__main__":
     app = QApplication(sys.argv)
     window = KaraokeApp()
     window.show()
-
     sys.exit(app.exec())

@@ -2,11 +2,34 @@ import urllib.request
 import os
 import shutil
 import zipfile
+import subprocess
+import sys
 
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 GITHUB_VERSION_URL = "https://raw.githubusercontent.com/Oogghi/lyricgenerator/main/version.txt"
 GITHUB_ZIP_URL = "https://github.com/Oogghi/lyricgenerator/archive/refs/heads/main.zip"
+
+REQUIRED_MODULES = {
+    "PyQt6": "PyQt6",
+    "pydub": "pydub",
+    "librosa": "librosa",
+    "numpy": "numpy",
+    "Pillow": "PIL",
+    "av": "av",
+    "num2words": "num2words",
+    "forcealign": "forcealign"
+}
+
+def install_missing_deps():
+    for pip_name, import_name in REQUIRED_MODULES.items():
+        try:
+            __import__(import_name)
+        except ImportError:
+            print(f"[Updater] Module manquant: {pip_name}, installation...")
+            subprocess.check_call([sys.executable, "-m", "pip", "install", pip_name])
+        else:
+            print(f"[Updater] Module {pip_name} déjà installé")
 
 def get_remote_version():
     try:
@@ -57,13 +80,16 @@ def download_update():
     os.remove("update.zip")
     print("[Updater] Mise à jour terminée.")
 
-def parse_version(v):
-    try:
-        return tuple(map(int, v.split(".")))
-    except Exception:
-        return (0,)
+def parse_version(v, length=3):
+    v = v.strip()
+    parts = list(map(int, v.split(".")))
+    while len(parts) < length:
+        parts.append(0)
+    return tuple(parts[:length])
 
 if __name__ == "__main__":
+    print("[Updater] Vérification des modules...")
+    install_missing_deps()
     print("[Updater] Vérification de la version...")
     local_version_str = get_local_version()
     remote_version_str = get_remote_version()
