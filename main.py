@@ -1,7 +1,7 @@
 import sys
 import json
 import os
-# import yt_dlp
+import yt_dlp
 import re
 from PyQt6.QtWidgets import (
     QApplication, QWidget, QLabel, QPushButton, QLineEdit, QTextEdit,
@@ -568,10 +568,16 @@ class KaraokeApp(QWidget):
         self.progress_bar.setValue(5)
 
         audio_path = self.audio_input.text().strip()
-        if not audio_path or not os.path.isfile(audio_path):
-            self.progress_label.setText("❌ Sélectionnez un fichier audio valide !")
+        if not audio_path:
+            self.progress_label.setText("❌ Sélectionnez un fichier audio ou collez un lien YouTube !")
             self.btn_generate.setEnabled(True)
             return
+
+        if not os.path.isfile(audio_path):
+            if not self.is_youtube_url(audio_path):
+                self.progress_label.setText("❌ Sélectionnez un fichier audio valide ou un lien YouTube !")
+                self.btn_generate.setEnabled(True)
+                return
 
         lyrics_text = self.text_edit.toPlainText().strip()
         if not lyrics_text:
