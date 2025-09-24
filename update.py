@@ -77,9 +77,18 @@ if __name__ == "__main__":
         print("[Updater] Impossible de vérifier la version. Lancement du jeu.")
         os.system("python main.py")
     elif local_version == remote_version:
-        print("[Updater] Version à jour.")
+        print("[Updater] Tout est PARFAIT ! :D")
+        print("[Updater] Lancement de main.py...")
+        os.system("python main.py")
+    elif local_version > remote_version:
+        print(f"[Updater] Tu as la version {local_version} alors que la derniere est {remote_version}, tu voyages dans le temps??")
+        download_update()
+        os.system("python main.py")
+    elif local_version < remote_version:
+        print(f"[Updater] Nouvelle version détectée ({remote_version}). Mise à jour...")
+        download_update()
         os.system("python main.py")
     else:
-        print(f"[Updater] Nouvelle version détectée ({remote_version}). Mise à jour...")
+        print("[Updater] euh, si tu vois ça c'est que t'as fait n'importe quoi, donc on va te mettre la dernière version stable ;)")
         download_update()
         os.system("python main.py")
