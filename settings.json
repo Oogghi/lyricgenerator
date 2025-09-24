@@ -1,0 +1,16 @@
+{
+  "audio_input": "",
+  "audio_start_input": "",
+  "audio_end_input": "",
+  "text_edit": "aswdasdwa",
+  "output_input": "",
+  "bg_input": "",
+  "fps": 60,
+  "chroma_start": "15.0",
+  "chroma_speed": "1.25",
+  "chroma_sim": "0.25",
+  "chroma_blend": "0.04",
+  "font_name": "COMICBD",
+  "encoder": "h264_amf",
+  "preset": "ultrafast"
+}

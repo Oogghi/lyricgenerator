@@ -1,4 +1,5 @@
 import sys
+import json
 import os
 # import yt_dlp
 import re
@@ -19,6 +20,7 @@ try:
 except ImportError:
     HAS_DEPS = False
 
+SETTINGS_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "settings.json")
 
 # Worker (only works if deps exist)
 if HAS_DEPS:
@@ -374,6 +376,88 @@ class KaraokeApp(QWidget):
         layout.addWidget(self.btn_generate)
 
         self.setLayout(layout)
+
+        self.load_settings()
+
+    def load_settings(self):
+        """Charge les réglages depuis settings.json (s'ils existent)"""
+        try:
+            if not os.path.exists(SETTINGS_PATH):
+                return
+
+            with open(SETTINGS_PATH, "r", encoding="utf-8") as f:
+                s = json.load(f)
+
+            # champs textuels
+            self.audio_input.setText(s.get("audio_input", ""))
+            self.audio_start_input.setText(s.get("audio_start_input", ""))
+            self.audio_end_input.setText(s.get("audio_end_input", ""))
+            self.text_edit.setPlainText(s.get("text_edit", ""))
+            self.output_input.setText(s.get("output_input", ""))
+            self.bg_input.setText(s.get("bg_input", ""))
+
+            # numériques / spinbox
+            try:
+                self.fps_input.setValue(int(s.get("fps", self.fps_input.value())))
+            except Exception:
+                pass
+
+            # chroma params (gardés en string)
+            self.chroma_start_input.setText(s.get("chroma_start", self.chroma_start_input.text()))
+            self.chroma_speed_input.setText(s.get("chroma_speed", self.chroma_speed_input.text()))
+            self.chroma_sim_input.setText(s.get("chroma_sim", self.chroma_sim_input.text()))
+            self.chroma_blend_input.setText(s.get("chroma_blend", self.chroma_blend_input.text()))
+
+            # combo boxes (setCurrentText marche même si l'item n'existe pas)
+            self.font_input.setCurrentText(s.get("font_name", self.font_input.currentText()))
+            self.encoder_input.setCurrentText(s.get("encoder", self.encoder_input.currentText()))
+            self.preset_input.setCurrentText(s.get("preset", self.preset_input.currentText()))
+
+        except Exception as e:
+            # ne pas planter l'UI si le fichier est corrompu
+            print("Erreur load_settings:", e)
+
+    def save_settings(self):
+        """Sauvegarde les réglages actuels dans settings.json (atomique)"""
+        try:
+            s = {
+                "audio_input": self.audio_input.text().strip(),
+                "audio_start_input": self.audio_start_input.text().strip(),
+                "audio_end_input": self.audio_end_input.text().strip(),
+                "text_edit": self.text_edit.toPlainText(),
+                "output_input": self.output_input.text().strip(),
+                "bg_input": self.bg_input.text().strip(),
+                "fps": self.fps_input.value(),
+                "chroma_start": self.chroma_start_input.text().strip(),
+                "chroma_speed": self.chroma_speed_input.text().strip(),
+                "chroma_sim": self.chroma_sim_input.text().strip(),
+                "chroma_blend": self.chroma_blend_input.text().strip(),
+                "font_name": self.font_input.currentText(),
+                "encoder": self.encoder_input.currentText(),
+                "preset": self.preset_input.currentText()
+            }
+
+            tmp_path = SETTINGS_PATH + ".tmp"
+            with open(tmp_path, "w", encoding="utf-8") as f:
+                json.dump(s, f, ensure_ascii=False, indent=2)
+
+            # opération atomique (remplace le fichier)
+            os.replace(tmp_path, SETTINGS_PATH)
+
+        except Exception as e:
+            print("Erreur save_settings:", e)
+
+    def closeEvent(self, event):
+        """
+        Sauvegarde les réglages quand l'utilisateur ferme la fenêtre
+        (appelé automatiquement par Qt)
+        """
+        try:
+            self.save_settings()
+        except Exception as e:
+            print("Erreur lors de la sauvegarde à la fermeture:", e)
+        # accepter la fermeture
+        event.accept()
 
     # --- File dialogs
     def select_audio(self):
