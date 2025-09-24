@@ -609,7 +609,7 @@ class KaraokeApp(QWidget):
             chroma_speed=chroma_speed,
             chroma_sim=chroma_sim,
             chroma_blend=chroma_blend,
-            font_name=self.font_input.strip(),
+            font_name=self.font_input.currentText(),
             encoder=self.encoder_input.currentText(),
             preset=self.preset_input.currentText()
         )
