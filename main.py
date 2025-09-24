@@ -1,6 +1,6 @@
 import sys
 import os
-import yt_dlp
+# import yt_dlp
 import re
 from PyQt6.QtWidgets import (
     QApplication, QWidget, QLabel, QPushButton, QLineEdit, QTextEdit,
@@ -26,8 +26,8 @@ if HAS_DEPS:
         progress = pyqtSignal(str)
         finished = pyqtSignal(bool, str)
 
-        def __init__(self, audio_file, text_file, output_dir, fps, bg_video,
-                     chroma_start, chroma_speed, chroma_sim, chroma_blend, font_name, encoder):
+        def __init__(self, audio_file, text_file, output_dir, fps, bg_video, chroma_start,
+                     chroma_speed, chroma_sim, chroma_blend, font_name, encoder, preset):
             super().__init__()
             self.audio_file = audio_file
             self.text_file = text_file
@@ -40,6 +40,7 @@ if HAS_DEPS:
             self.chroma_blend = chroma_blend
             self.font_name = font_name
             self.encoder = encoder
+            self.preset = preset
 
         def run(self):
             try:
@@ -52,7 +53,7 @@ if HAS_DEPS:
                 generate_lrc(self.audio_file, self.text_file, lrc_path)
 
                 # 2) Lyrics video
-                self.progress.emit("🎬 Génération de la vidéo paroles...")
+                self.progress.emit("🎬 Génération de la vidéo des paroles...")
                 lyrics_video_path = os.path.join(self.output_dir, f"{base_name}_lyrics.mp4")
                 generate_lyrics_video(
                     mp3_path=self.audio_file,
@@ -64,7 +65,7 @@ if HAS_DEPS:
 
                 # 3) Optional chroma overlay
                 if self.bg_video:
-                    self.progress.emit("🖌️ Superposition de la vidéo chroma...")
+                    self.progress.emit("🖌️ Superposition de la vidéo...")
                     final_path = os.path.join(self.output_dir, f"{base_name}_final.mp4")
                     rc, log = chroma_video.overlay_chroma(
                         bg_path=self.bg_video,
@@ -75,7 +76,8 @@ if HAS_DEPS:
                         similarity=self.chroma_sim,
                         blend=self.chroma_blend,
                         bg_color="00ff00",
-                        encoder=self.encoder
+                        encoder=self.encoder,
+                        preset=self.preset
                     )
                     if rc == 0:
                         self.finished.emit(True, final_path)
@@ -165,8 +167,8 @@ class KaraokeApp(QWidget):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("🎶 Générateur de paroles par Oogghi")
-        self.setFixedSize(680, 620)
-        self.setMinimumSize(680, 620)
+        self.setFixedSize(780, 720)
+        self.setMinimumSize(780, 720)
         self.setWindowFlag(Qt.WindowType.FramelessWindowHint)
         self.setStyleSheet("background-color: black; color: white;")
 
@@ -180,7 +182,7 @@ class KaraokeApp(QWidget):
         h_audio = QHBoxLayout()
         h_audio.addWidget(QLabel("Fichier audio :"))
         self.audio_input = QLineEdit()
-        self.audio_input.setPlaceholderText("Sélectionnez un fichier audio...")
+        self.audio_input.setPlaceholderText("Sélectionnez un fichier audio ou collez le lien d'une video youtube...")
         self.audio_input.setStyleSheet("background-color: #222; padding: 6px; border-radius: 4px;")
         btn_audio = QPushButton("Parcourir")
         btn_audio.clicked.connect(self.select_audio)
@@ -226,7 +228,7 @@ class KaraokeApp(QWidget):
         h_bg = QHBoxLayout()
         h_bg.addWidget(QLabel("Vidéo de fond :"))
         self.bg_input = QLineEdit()
-        self.bg_input.setPlaceholderText("Vidéo de fond (optionnelle)...")
+        self.bg_input.setPlaceholderText("Sélectionnez une vidéo de fond ou collez le lien d'une video youtube (optionnelle)...")
         self.bg_input.setStyleSheet("background-color: #222; padding: 6px; border-radius: 4px;")
         btn_bg = QPushButton("Parcourir")
         btn_bg.clicked.connect(self.select_bg)
@@ -245,7 +247,7 @@ class KaraokeApp(QWidget):
         self.fps_input.setValue(60)
         h_params1.addWidget(self.fps_input)
 
-        h_params1.addWidget(QLabel("Début chroma (s) :"))
+        h_params1.addWidget(QLabel("Début de la vidéo de fond (s) :"))
         self.chroma_start_input = QLineEdit("15.0")
         self.chroma_start_input.setStyleSheet("background-color: #222; padding: 6px; border-radius: 4px;")
         h_params1.addWidget(self.chroma_start_input)
@@ -255,16 +257,15 @@ class KaraokeApp(QWidget):
         self.chroma_speed_input.setStyleSheet("background-color: #222; padding: 6px; border-radius: 4px;")
         h_params1.addWidget(self.chroma_speed_input)
 
-        params_layout.addLayout(h_params1)
+        h_params1.addWidget(QLabel("Similarité :"))
+        self.chroma_sim_input = QLineEdit("0.25")
+        self.chroma_sim_input.setStyleSheet("background-color: #222; padding: 6px; border-radius: 4px;")
+        h_params1.addWidget(self.chroma_sim_input)
 
+        params_layout.addLayout(h_params1)
 
         # --- Second row (Similarity + Blend + Font + Encoder)
         h_params2 = QHBoxLayout()
-
-        h_params2.addWidget(QLabel("Similarité :"))
-        self.chroma_sim_input = QLineEdit("0.25")
-        self.chroma_sim_input.setStyleSheet("background-color: #222; padding: 6px; border-radius: 4px;")
-        h_params2.addWidget(self.chroma_sim_input)
 
         h_params2.addWidget(QLabel("Fusion :"))
         self.chroma_blend_input = QLineEdit("0.04")
@@ -272,9 +273,18 @@ class KaraokeApp(QWidget):
         h_params2.addWidget(self.chroma_blend_input)
 
         h_params2.addWidget(QLabel("Police :"))
-        self.font_input = QLineEdit("COMICBD")
+        self.font_input = QComboBox()
         self.font_input.setStyleSheet("background-color: #222; padding: 6px; border-radius: 4px;")
+
+        fonts_folder = "fonts"
+        if os.path.exists(fonts_folder):
+            for font_file in os.listdir(fonts_folder):
+                if font_file.endswith(".ttf") or font_file.endswith(".otf"):
+                    font_name = font_file.split('.')[0]
+                    self.font_input.addItem(font_name)
+
         h_params2.addWidget(self.font_input)
+        self.font_input.setCurrentText("COMICBD")
 
         h_params2.addWidget(QLabel("Encodeur :"))
         self.encoder_input = QComboBox()
@@ -299,14 +309,29 @@ class KaraokeApp(QWidget):
 
             # Intel QuickSync
             "h264_qsv",
-            "hevc_qsv",
+            "hevc_qsv"
         ])
         self.encoder_input.setCurrentText("libx264")
         h_params2.addWidget(self.encoder_input)
 
-        params_layout.addLayout(h_params2)
+        h_params2.addWidget(QLabel("Preset :"))
+        self.preset_input = QComboBox()
+        self.preset_input.setStyleSheet("background-color: #222; padding: 6px; border-radius: 4px;")
 
-        # --- Add the whole params section to main layout
+        self.preset_input.addItems([
+            "ultrafast",
+            "superfast",
+            "veryfast",
+            "fast",
+            "medium",
+            "slow",
+            "slower",
+            "veryslow"
+        ])
+        self.preset_input.setCurrentText("ultrafast")
+        h_params2.addWidget(self.preset_input)
+
+        params_layout.addLayout(h_params2)
         layout.addLayout(params_layout)
 
         # --- Progress
@@ -585,7 +610,8 @@ class KaraokeApp(QWidget):
             chroma_sim=chroma_sim,
             chroma_blend=chroma_blend,
             font_name=self.font_input.text().strip(),
-            encoder=self.encoder_input.currentText()
+            encoder=self.encoder_input.currentText(),
+            preset=self.preset_input.currentText()
         )
         self.worker.progress.connect(self.update_progress)
         self.worker.finished.connect(self.finish_progress)

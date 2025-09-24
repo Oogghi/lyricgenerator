@@ -3,12 +3,9 @@ import os
 import shutil
 import zipfile
 
-# 📌 Se placer dans le dossier du script
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
-# URL du fichier version.txt sur GitHub
 GITHUB_VERSION_URL = "https://raw.githubusercontent.com/Oogghi/lyricgenerator/main/version.txt"
-# URL de l'archive ZIP du dépôt GitHub
 GITHUB_ZIP_URL = "https://github.com/Oogghi/lyricgenerator/archive/refs/heads/main.zip"
 
 def get_remote_version():
@@ -34,10 +31,9 @@ def download_update():
 
     extracted_folder = os.path.join("update_temp", os.listdir("update_temp")[0])
 
-    # Supprimer les anciens fichiers sauf update.py et updater.bat
     print("[Updater] Suppression des anciens fichiers...")
     for item in os.listdir("."):
-        if item not in ["update.py", "updater.bat", "update.zip", "update_temp", "__pycache__"]:
+        if item not in ["update.py", "start.bat", "update.zip", "update_temp", "__pycache__"]:
             try:
                 if os.path.isdir(item):
                     shutil.rmtree(item)
@@ -46,7 +42,6 @@ def download_update():
             except Exception as e:
                 print(f"Erreur suppression {item}: {e}")
 
-    # Copier tous les fichiers sauf update.py (pour éviter conflit)
     print("[Updater] Copie des nouveaux fichiers...")
     for item in os.listdir(extracted_folder):
         src_path = os.path.join(extracted_folder, item)
@@ -60,7 +55,7 @@ def download_update():
 
         if item == "update.py":
             print("[Updater] Ignorer update.py pendant la copie.")
-            continue  # On ne touche pas update.py pendant l'exécution
+            continue
 
         if os.path.isdir(src_path):
             shutil.copytree(src_path, dst_path)
@@ -71,7 +66,6 @@ def download_update():
     os.remove("update.zip")
     print("[Updater] Mise à jour terminée.")
 
-    # Relancer main.py
     os.system("python main.py")
 
 if __name__ == "__main__":
