@@ -604,7 +604,7 @@ class KaraokeApp(QWidget):
             text_file=temp_txt,
             output_dir=out_dir,
             fps=self.fps_input.value(),
-            bg_video=self.bg_input.text() if self.bg_input.text() else None,
+            bg_video=self.bg_input.text().strip() or None,
             chroma_start=chroma_start,
             chroma_speed=chroma_speed,
             chroma_sim=chroma_sim,

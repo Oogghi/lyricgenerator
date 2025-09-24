@@ -124,7 +124,7 @@ def generate_lyrics_video(mp3_path, lrc_path, out_path, fps=DEFAULT_FPS, font_gu
     y, sr = librosa.load(mp3_path, sr=None)
     duration = librosa.get_duration(y=y, sr=sr)
 
-    FONT_NAME = font_gui.text().strip()
+    FONT_NAME = (font_gui or "").strip()
     if not FONT_NAME.endswith(".ttf"):
         FONT_NAME += ".ttf"
 
