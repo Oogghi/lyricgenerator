@@ -31,64 +31,69 @@ def download_update():
 
     extracted_folder = os.path.join("update_temp", os.listdir("update_temp")[0])
 
-    print("[Updater] Suppression des anciens fichiers...")
-    for item in os.listdir("."):
-        if item not in ["update.py", "start.bat", "update.zip", "update_temp", "__pycache__"]:
+    print("[Updater] Copie/merge des nouveaux fichiers...")
+    for root, dirs, files in os.walk(extracted_folder):
+        rel_path = os.path.relpath(root, extracted_folder)
+        dest_dir = os.path.join(".", rel_path) if rel_path != "." else "."
+
+        if not os.path.exists(dest_dir):
+            os.makedirs(dest_dir)
+
+        for file in files:
+            if file == "update.py":
+                print("[Updater] Ignorer update.py pendant la copie.")
+                continue
+
+            src_file = os.path.join(root, file)
+            dst_file = os.path.join(dest_dir, file)
+
             try:
-                if os.path.isdir(item):
-                    shutil.rmtree(item)
-                else:
-                    os.remove(item)
+                shutil.copy2(src_file, dst_file)  # écrase seulement le fichier si déjà là
+                print(f"[Updater] Copié: {dst_file}")
             except Exception as e:
-                print(f"Erreur suppression {item}: {e}")
-
-    print("[Updater] Copie des nouveaux fichiers...")
-    for item in os.listdir(extracted_folder):
-        src_path = os.path.join(extracted_folder, item)
-        dst_path = os.path.join(".", item)
-
-        if os.path.exists(dst_path) and item != "update.py":
-            if os.path.isdir(dst_path):
-                shutil.rmtree(dst_path)
-            else:
-                os.remove(dst_path)
-
-        if item == "update.py":
-            print("[Updater] Ignorer update.py pendant la copie.")
-            continue
-
-        if os.path.isdir(src_path):
-            shutil.copytree(src_path, dst_path)
-        else:
-            shutil.copy2(src_path, dst_path)
+                print(f"[Updater] Erreur copie {file}: {e}")
 
     shutil.rmtree("update_temp")
     os.remove("update.zip")
     print("[Updater] Mise à jour terminée.")
 
-    os.system("python main.py")
+def parse_version(v):
+    try:
+        return tuple(map(int, v.split(".")))
+    except Exception:
+        return (0,)
 
 if __name__ == "__main__":
     print("[Updater] Vérification de la version...")
-    local_version = get_local_version()
-    remote_version = get_remote_version()
+    local_version_str = get_local_version()
+    remote_version_str = get_remote_version()
 
-    if not remote_version:
-        print("[Updater] Impossible de vérifier la version. Lancement du jeu.")
-        os.system("python main.py")
-    elif local_version == remote_version:
-        print("[Updater] Tout est PARFAIT ! :D")
-        print("[Updater] Lancement de main.py...")
-        os.system("python main.py")
-    elif local_version > remote_version:
-        print(f"[Updater] Tu as la version {local_version} alors que la derniere est {remote_version}, tu voyages dans le temps??")
-        download_update()
-        os.system("python main.py")
-    elif local_version < remote_version:
-        print(f"[Updater] Nouvelle version détectée ({remote_version}). Mise à jour...")
+    if remote_version_str is None:
+        print("[Updater] Impossible de trouver la version.")
+        print("[Updater] Installation de la dernière version")
         download_update()
         os.system("python main.py")
     else:
-        print("[Updater] euh, si tu vois ça c'est que t'as fait n'importe quoi, donc on va te mettre la dernière version stable ;)")
-        download_update()
-        os.system("python main.py")
+        local_version = parse_version(local_version_str) if local_version_str else None
+        remote_version = parse_version(remote_version_str)
+
+        if local_version is None:
+            print("[Updater] Pas de version locale, installation...")
+            download_update()
+            os.system("python main.py")
+        elif local_version == remote_version:
+            print("[Updater] Tout est PARFAIT ! :D")
+            print("[Updater] Lancement de main.py...")
+            os.system("python main.py")
+        elif local_version > remote_version:
+            print(f"[Updater] Tu as la version {local_version_str} alors que la dernière est {remote_version_str}, tu voyages dans le temps??")
+            download_update()
+            os.system("python main.py")
+        elif local_version < remote_version:
+            print(f"[Updater] Nouvelle version détectée ({remote_version_str}). Mise à jour...")
+            download_update()
+            os.system("python main.py")
+        else:
+            print("[Updater] euh, si tu vois ça c'est que t'as fait n'importe quoi, donc on va te mettre la dernière version stable ;)")  
+            download_update()
+            os.system("python main.py")
