@@ -5,15 +5,13 @@ import tempfile
 import shlex
 
 # ====== DEFAULT CONFIG ======
-BG_COLOR = "00ff00"  # green screen en hex (sans #)
+BG_COLOR = "00ff00"
 DEFAULT_SIMILARITY = 0.70
 DEFAULT_BLEND = 0.03
 DEFAULT_START = 15.0
 DEFAULT_SPEED = 1.25
 DEFAULT_CRF = 18
-# Par défaut on choisit un preset très rapide pour aller vite.
 DEFAULT_PRESET = "ultrafast"
-# Si tu veux utiliser un encodeur matérielle (ex: 'h264_nvenc'), passe encoder='h264_nvenc'
 DEFAULT_ENCODER = "libx264"
 
 def run_cmd(cmd):

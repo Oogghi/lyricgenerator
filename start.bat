@@ -1,2 +1,4 @@
-cd C:\Users\Raphael\Documents\TEST
-python main.py
+@echo off
+cd /d "%~dp0"
+python update.py
+pause

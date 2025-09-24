@@ -9,7 +9,10 @@ import sys
 
 # ========== CONFIG ==========
 VIDEO_SIZE = (1080, 1080)
-FONT_PATH = r"C:\Users\Raphael\Documents\TEST\fonts\COMICBD.ttf"
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+FONTS_DIR = os.path.join(BASE_DIR, "fonts")
+FONT_NAME = "COMICBD.ttf"
+FONT_PATH = os.path.join(FONTS_DIR, FONT_NAME)
 FONT_SIZE = 90
 TEXT_COLOR = (0, 0, 0)
 BG_COLOR = (0, 255, 0)
@@ -117,9 +120,15 @@ def draw_text_frame(word_positions, text_lines, current_time, font):
     return np.array(img)
 
 # ========== MAIN FUNCTION ==========
-def generate_lyrics_video(mp3_path, lrc_path, out_path, fps=DEFAULT_FPS):
+def generate_lyrics_video(mp3_path, lrc_path, out_path, fps=DEFAULT_FPS, font_gui=FONT_NAME):
     y, sr = librosa.load(mp3_path, sr=None)
     duration = librosa.get_duration(y=y, sr=sr)
+
+    FONT_NAME = font_gui.text().strip()
+    if not FONT_NAME.endswith(".ttf"):
+        FONT_NAME += ".ttf"
+
+    FONT_PATH = os.path.join(FONTS_DIR, FONT_NAME)
 
     container = av.open(out_path + ".noaudio.mp4", mode='w')
     stream = container.add_stream("libx264", rate=fps)
