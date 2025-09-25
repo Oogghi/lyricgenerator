@@ -464,7 +464,7 @@ class KaraokeApp(QWidget):
 
     def get_output_dir(self) -> str:
         """Compute the real output folder path inside songs/."""
-        project_name = sanitize_filename(self.project_input.text())
+        project_name = self.output_input.text()
         if not project_name:
             project_name = "default_project"
         output_dir = os.path.join("songs", project_name)
