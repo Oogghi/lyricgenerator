@@ -55,13 +55,26 @@ def get_local_version():
     except FileNotFoundError:
         return None
 
+import requests
+import zipfile
+import os
+import shutil
+
 def download_update():
     print("[Updater] Téléchargement de la nouvelle version...")
+
+    # téléchargement robuste avec requests
     with requests.get(GITHUB_ZIP_URL, stream=True) as r:
         r.raise_for_status()
         with open("update.zip", "wb") as f:
             for chunk in r.iter_content(chunk_size=8192):
                 f.write(chunk)
+
+    # extraction du zip
+    with zipfile.ZipFile("update.zip", "r") as zip_ref:
+        zip_ref.extractall("update_temp")
+
+    extracted_folder = os.path.join("update_temp", os.listdir("update_temp")[0])
 
     print("[Updater] Copie/merge des nouveaux fichiers...")
     for root, dirs, files in os.walk(extracted_folder):
@@ -80,7 +93,7 @@ def download_update():
             dst_file = os.path.join(dest_dir, file)
 
             try:
-                shutil.copy2(src_file, dst_file)  # écrase seulement le fichier si déjà là
+                shutil.copy2(src_file, dst_file)
                 print(f"[Updater] Copié: {dst_file}")
             except Exception as e:
                 print(f"[Updater] Erreur copie {file}: {e}")
@@ -88,7 +101,7 @@ def download_update():
     shutil.rmtree("update_temp")
     os.remove("update.zip")
     print("[Updater] Mise à jour terminée.")
-
+    
 def parse_version(v, length=3):
     v = v.strip()
     parts = list(map(int, v.split(".")))
@@ -132,3 +145,4 @@ if __name__ == "__main__":
             print("[Updater] euh, si tu vois ça c'est que t'as fait n'importe quoi, donc on va te mettre la dernière version stable ;)")  
             download_update()
             os.system("python main.py")
+
