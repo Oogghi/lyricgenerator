@@ -18,7 +18,8 @@ REQUIRED_MODULES = {
     "Pillow": "PIL",
     "av": "av",
     "num2words": "num2words",
-    "forcealign": "forcealign"
+    "forcealign": "forcealign",
+    "yt-dlp": "yt-dlp"
 }
 
 def install_missing_deps():
@@ -122,4 +123,5 @@ if __name__ == "__main__":
         else:
             print("[Updater] euh, si tu vois ça c'est que t'as fait n'importe quoi, donc on va te mettre la dernière version stable ;)")  
             download_update()
+
             os.system("python main.py")
