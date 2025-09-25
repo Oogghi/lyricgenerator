@@ -14,7 +14,7 @@ from pydub import AudioSegment
 # Try to import dependencies
 HAS_DEPS = True
 try:
-    from align_whisperx import generate_lrc
+    from force_align import generate_lrc
     from generate_vid import generate_lyrics_video
     import chroma_video
 except ImportError:
@@ -727,4 +727,5 @@ if __name__ == "__main__":
     app = QApplication(sys.argv)
     window = KaraokeApp()
     window.show()
+
     sys.exit(app.exec())
