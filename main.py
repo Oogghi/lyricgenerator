@@ -560,6 +560,11 @@ class KaraokeApp(QWidget):
             self.progress_label.setText(f"❌ Erreur téléchargement vidéo: {e}")
             return None
 
+    def sanitize_filename(name: str) -> str:
+        """Remplace tous les caractères problématiques par '_' et limite la longueur"""
+        name = re.sub(r'[^\w\-_.]', '_', name)
+        return name[:200]
+
     # --- Generate logic
     def generate(self):
         self.btn_generate.setEnabled(False)
@@ -595,6 +600,7 @@ class KaraokeApp(QWidget):
         if not os.path.exists(out_dir):
             os.makedirs(out_dir, exist_ok=True)
 
+        # --- Download YouTube audio if needed ---
         if self.is_youtube_url(audio_path):
             self.progress_label.setText("🔽 Connexion pour téléchargement audio...")
             QApplication.processEvents()
@@ -606,12 +612,21 @@ class KaraokeApp(QWidget):
             if not audio_path:
                 self.btn_generate.setEnabled(True)
                 return
+
+            # sanitize filename
+            base, ext = os.path.splitext(os.path.basename(audio_path))
+            safe_name = sanitize_filename(base) + ext
+            safe_path = os.path.join(out_dir, safe_name)
+            if audio_path != safe_path:
+                os.rename(audio_path, safe_path)
+                audio_path = safe_path
             self.audio_input.setText(audio_path)
 
             self.progress_label.setText("✅ Audio téléchargé")
             QApplication.processEvents()
             self.progress_bar.setValue(10)
 
+        # --- Download YouTube background video if needed ---
         bg_path = self.bg_input.text().strip()
         if bg_path and self.is_youtube_url(bg_path):
             self.progress_label.setText("🔽 Connexion pour téléchargement vidéo...")
@@ -624,16 +639,26 @@ class KaraokeApp(QWidget):
             if not bg_path:
                 self.btn_generate.setEnabled(True)
                 return
+
+            # sanitize filename
+            base, ext = os.path.splitext(os.path.basename(bg_path))
+            safe_name = sanitize_filename(base) + ext
+            safe_path = os.path.join(out_dir, safe_name)
+            if bg_path != safe_path:
+                os.rename(bg_path, safe_path)
+                bg_path = safe_path
             self.bg_input.setText(bg_path)
 
             self.progress_label.setText("✅ Vidéo téléchargée")
             QApplication.processEvents()
             self.progress_bar.setValue(13)
 
+        # --- Save lyrics ---
         temp_txt = os.path.join(out_dir, "transcript.txt")
         with open(temp_txt, "w", encoding="utf-8") as f:
             f.write(lyrics_text)
 
+        # --- Parse timecodes ---
         try:
             start_tc = self.audio_start_input.text().strip()
             end_tc = self.audio_end_input.text().strip()
@@ -648,6 +673,7 @@ class KaraokeApp(QWidget):
             self.btn_generate.setEnabled(True)
             return
 
+        # --- Trim audio ---
         try:
             self.progress_label.setText("✂️ Lecture audio...")
             QApplication.processEvents()
@@ -663,7 +689,8 @@ class KaraokeApp(QWidget):
 
             ext = os.path.splitext(audio_path)[1].lstrip('.').lower()
             base_name = os.path.splitext(os.path.basename(audio_path))[0]
-            trimmed_audio_path = os.path.join(out_dir, f"{base_name}_trimmed.{ext}")
+            trimmed_audio_name = sanitize_filename(base_name + "_trimmed") + f".{ext}"
+            trimmed_audio_path = os.path.join(out_dir, trimmed_audio_name)
 
             self.progress_label.setText("✂️ Export audio...")
             QApplication.processEvents()
@@ -678,6 +705,7 @@ class KaraokeApp(QWidget):
             self.btn_generate.setEnabled(True)
             return
 
+        # --- Chroma parameters ---
         try:
             chroma_start = float(self.chroma_start_input.text().strip())
             chroma_speed = float(self.chroma_speed_input.text().strip())
@@ -690,6 +718,7 @@ class KaraokeApp(QWidget):
 
         self.progress_bar.setValue(80)
 
+        # --- Start worker ---
         self.worker = Worker(
             audio_file=trimmed_audio_path,
             text_file=temp_txt,
