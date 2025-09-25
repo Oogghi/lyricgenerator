@@ -216,14 +216,11 @@ class KaraokeApp(QWidget):
 
         # --- Output dir
         h_output = QHBoxLayout()
-        h_output.addWidget(QLabel("Dossier de sortie :"))
+        h_output.addWidget(QLabel("Nom du projet :"))
         self.output_input = QLineEdit()
-        self.output_input.setPlaceholderText("Sélectionnez le dossier de sortie...")
+        self.output_input.setPlaceholderText("Entrez le nom du projet...")
         self.output_input.setStyleSheet("background-color: #222; padding: 6px; border-radius: 4px;")
-        btn_output = QPushButton("Parcourir")
-        btn_output.clicked.connect(self.select_output)
         h_output.addWidget(self.output_input)
-        h_output.addWidget(btn_output)
         layout.addLayout(h_output)
 
         # --- Background video
@@ -465,10 +462,14 @@ class KaraokeApp(QWidget):
         if file:
             self.audio_input.setText(file)
 
-    def select_output(self):
-        dir_ = QFileDialog.getExistingDirectory(self, "Sélectionner le dossier de sortie")
-        if dir_:
-            self.output_input.setText(dir_)
+    def get_output_dir(self) -> str:
+        """Compute the real output folder path inside songs/."""
+        project_name = sanitize_filename(self.project_input.text())
+        if not project_name:
+            project_name = "default_project"
+        output_dir = os.path.join("songs", project_name)
+        os.makedirs(output_dir, exist_ok=True)
+        return output_dir
 
     def select_bg(self):
         file, _ = QFileDialog.getOpenFileName(self, "Sélectionner la vidéo de fond", "", "Fichiers vidéo (*.mp4 *.mov *.avi)")
@@ -565,7 +566,7 @@ class KaraokeApp(QWidget):
         self.progress_bar.setValue(0)
         self.progress_label.setText("Démarrage...")
         QApplication.processEvents()
-        self.progress_bar.setValue(5)
+        self.progress_bar.setValue(1)
 
         audio_path = self.audio_input.text().strip()
         if not audio_path:
@@ -585,7 +586,7 @@ class KaraokeApp(QWidget):
             self.btn_generate.setEnabled(True)
             return
 
-        out_dir = self.output_input.text().strip()
+        out_dir = self.get_output_dir().strip()
         if not out_dir:
             self.progress_label.setText("❌ Sélectionnez un dossier de sortie !")
             self.btn_generate.setEnabled(True)
@@ -597,7 +598,7 @@ class KaraokeApp(QWidget):
         if self.is_youtube_url(audio_path):
             self.progress_label.setText("🔽 Connexion pour téléchargement audio...")
             QApplication.processEvents()
-            self.progress_bar.setValue(10)
+            self.progress_bar.setValue(5)
 
             self.progress_label.setText("🔽 Téléchargement audio...")
             QApplication.processEvents()
@@ -609,13 +610,13 @@ class KaraokeApp(QWidget):
 
             self.progress_label.setText("✅ Audio téléchargé")
             QApplication.processEvents()
-            self.progress_bar.setValue(20)
+            self.progress_bar.setValue(10)
 
         bg_path = self.bg_input.text().strip()
         if bg_path and self.is_youtube_url(bg_path):
             self.progress_label.setText("🔽 Connexion pour téléchargement vidéo...")
             QApplication.processEvents()
-            self.progress_bar.setValue(25)
+            self.progress_bar.setValue(12)
 
             self.progress_label.setText("🔽 Téléchargement vidéo...")
             QApplication.processEvents()
@@ -627,7 +628,7 @@ class KaraokeApp(QWidget):
 
             self.progress_label.setText("✅ Vidéo téléchargée")
             QApplication.processEvents()
-            self.progress_bar.setValue(35)
+            self.progress_bar.setValue(13)
 
         temp_txt = os.path.join(out_dir, "transcript.txt")
         with open(temp_txt, "w", encoding="utf-8") as f:
@@ -637,11 +638,11 @@ class KaraokeApp(QWidget):
             start_tc = self.audio_start_input.text().strip()
             end_tc = self.audio_end_input.text().strip()
             audio_start_s = KaraokeApp.parse_timecode_to_seconds(start_tc)
-            self.progress_bar.setValue(40)
+            self.progress_bar.setValue(15)
             QApplication.processEvents()
 
             audio_end_s = KaraokeApp.parse_timecode_to_seconds(end_tc)
-            self.progress_bar.setValue(45)
+            self.progress_bar.setValue(20)
         except ValueError as e:
             self.progress_label.setText(f"❌ Erreur de timecode : {e}")
             self.btn_generate.setEnabled(True)
@@ -651,14 +652,14 @@ class KaraokeApp(QWidget):
             self.progress_label.setText("✂️ Lecture audio...")
             QApplication.processEvents()
             audio = AudioSegment.from_file(audio_path)
-            self.progress_bar.setValue(50)
+            self.progress_bar.setValue(30)
 
             self.progress_label.setText("✂️ Découpe audio...")
             QApplication.processEvents()
             start_ms = int(audio_start_s * 1000)
             end_ms = int(audio_end_s * 1000) if audio_end_s != -1 else None
             trimmed_segment = audio[start_ms:end_ms] if end_ms else audio[start_ms:]
-            self.progress_bar.setValue(55)
+            self.progress_bar.setValue(40)
 
             ext = os.path.splitext(audio_path)[1].lstrip('.').lower()
             base_name = os.path.splitext(os.path.basename(audio_path))[0]
@@ -667,7 +668,7 @@ class KaraokeApp(QWidget):
             self.progress_label.setText("✂️ Export audio...")
             QApplication.processEvents()
             trimmed_segment.export(trimmed_audio_path, format=ext)
-            self.progress_bar.setValue(60)
+            self.progress_bar.setValue(50)
 
             self.progress_label.setText("✅ Audio découpé")
             QApplication.processEvents()
@@ -687,7 +688,7 @@ class KaraokeApp(QWidget):
             self.btn_generate.setEnabled(True)
             return
 
-        self.progress_bar.setValue(70)
+        self.progress_bar.setValue(80)
 
         self.worker = Worker(
             audio_file=trimmed_audio_path,
