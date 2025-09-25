@@ -6,7 +6,7 @@ Aplicación PyQt6 para crear vídeos karaoke con sincronización automática de 
 
 ## ✨ Funcionalidades
 
-- **Sincronización automática** de letras con audio mediante WhisperX
+- **Sincronización automática** de letras con audio mediante ForceAlign
 - **Soporte multi-formato**: MP3, WAV, FLAC, M4A, MP4, MOV, AVI
 - **Descarga integrada desde YouTube** para audio y vídeo de fondo
 - **Recorte de audio** con códigos de tiempo (MM:SS o H:MM:SS)
@@ -34,9 +34,6 @@ Aplicación PyQt6 para crear vídeos karaoke con sincronización automática de 
 │ └── COMICBD.ttf # Fuente por defecto
 ├── songs/ # Carpeta de sonidos
 └── settings.json # Configuración guardada
-
-markdown
-Copier le code
 
 ## 🚀 Uso
 
@@ -127,9 +124,6 @@ Tercera línea final
 
 Vídeo de fondo : https://www.youtube.com/watch?v=dQw4w9WgXcQ
 Parámetros : FPS=60, Velocidad=1.25, Fuente=COMICBD
-
-yaml
-Copier le code
 
 ## 🤝 Contribución
 
