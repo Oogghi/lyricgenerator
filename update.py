@@ -1,9 +1,11 @@
 import urllib.request
 import os
 import shutil
+import requests
 import zipfile
 import subprocess
 import sys
+import importlib.util
 
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
@@ -19,18 +21,24 @@ REQUIRED_MODULES = {
     "av": "av",
     "num2words": "num2words",
     "forcealign": "forcealign",
-    "yt-dlp": "yt-dlp"
+    "yt-dlp": "yt_dlp",
+    "requests":"requests"
 }
 
 def install_missing_deps():
+    missing = []
     for pip_name, import_name in REQUIRED_MODULES.items():
-        try:
-            __import__(import_name)
-        except ImportError:
-            print(f"[Updater] Module manquant: {pip_name}, installation...")
-            subprocess.check_call([sys.executable, "-m", "pip", "install", pip_name])
+        if importlib.util.find_spec(import_name) is None:
+            print(f"[Updater] Module manquant: {pip_name}")
+            missing.append(pip_name)
         else:
             print(f"[Updater] Module {pip_name} déjà installé")
+    
+    if missing:
+        print(f"[Updater] Installation des modules manquants: {', '.join(missing)}")
+        subprocess.check_call([sys.executable, "-m", "pip", "install", *missing])
+    else:
+        print("[Updater] Tous les modules requis sont déjà installés ✅")
 
 def get_remote_version():
     try:
@@ -49,11 +57,11 @@ def get_local_version():
 
 def download_update():
     print("[Updater] Téléchargement de la nouvelle version...")
-    urllib.request.urlretrieve(GITHUB_ZIP_URL, "update.zip")
-    with zipfile.ZipFile("update.zip", "r") as zip_ref:
-        zip_ref.extractall("update_temp")
-
-    extracted_folder = os.path.join("update_temp", os.listdir("update_temp")[0])
+    with requests.get(GITHUB_ZIP_URL, stream=True) as r:
+        r.raise_for_status()
+        with open("update.zip", "wb") as f:
+            for chunk in r.iter_content(chunk_size=8192):
+                f.write(chunk)
 
     print("[Updater] Copie/merge des nouveaux fichiers...")
     for root, dirs, files in os.walk(extracted_folder):
@@ -123,5 +131,4 @@ if __name__ == "__main__":
         else:
             print("[Updater] euh, si tu vois ça c'est que t'as fait n'importe quoi, donc on va te mettre la dernière version stable ;)")  
             download_update()
-
             os.system("python main.py")
