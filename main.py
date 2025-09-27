@@ -98,6 +98,11 @@ class PlainTextEdit(QTextEdit):
         else:
             super().insertFromMimeData(source)
 
+def sanitize_filename(name: str) -> str:
+        """Remplace tous les caractères problématiques par '_' et limite la longueur"""
+        name = re.sub(r'[^\w\-_.]', '_', name)
+        return name[:200]
+
 class CustomTitleBar(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -560,13 +565,9 @@ class KaraokeApp(QWidget):
             self.progress_label.setText(f"❌ Erreur téléchargement vidéo: {e}")
             return None
 
-    def sanitize_filename(name: str) -> str:
-        """Remplace tous les caractères problématiques par '_' et limite la longueur"""
-        name = re.sub(r'[^\w\-_.]', '_', name)
-        return name[:200]
-
     # --- Generate logic
     def generate(self):
+        self.save_settings()
         self.btn_generate.setEnabled(False)
         self.progress_bar.setValue(0)
         self.progress_label.setText("Démarrage...")

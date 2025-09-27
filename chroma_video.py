@@ -19,7 +19,7 @@ def run_cmd(cmd):
     logpath = os.path.join(tempfile.gettempdir(), f"ffmpeg_overlay_log_{os.getpid()}.txt")
     with open(logpath, 'w', encoding='utf-8') as flog:
         proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                                universal_newlines=True, bufsize=1)
+                        text=True, encoding='utf-8', errors='replace', bufsize=1)
         # stream stderr lines to stdout and log file
         for line in proc.stderr:
             print(line.rstrip())
@@ -112,9 +112,13 @@ def overlay_chroma(bg_path, fg_path, out_path,
     # Scale filter conservé : on scale le foreground pour qu'il tienne dans la résolution du bg (même logique que toi).
     main_ratio = float(main_w) / float(main_h) if main_h != 0 else 1.0
     ratio_str = f"{main_ratio:.9f}"
+
+    zoom_factor = 1.1 
+
     scale_filter = (
         f"scale=if(gt(iw/ih\\,{ratio_str})\\,{main_w}\\,-1):"
-        f"if(gt(iw/ih\\,{ratio_str})\\,-1\\,{main_h})"
+        f"if(gt(iw/ih\\,{ratio_str})\\,-1\\,{main_h}),"
+        f"scale=iw*{zoom_factor}:ih*{zoom_factor}"
     )
 
     # Chroma key filter (on garde chromakey). Format rgba pour overlay propre.
