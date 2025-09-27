@@ -78,7 +78,7 @@ def paginate_lines(text_lines):
     prev_count = None
 
     while start < len(text_lines):
-        choices = [2, 3, 4]
+        choices = [1, 2, 3]
         if prev_count in choices:
             choices.remove(prev_count)
         count = random.choice(choices)
@@ -227,4 +227,5 @@ if __name__ == "__main__":
         lrc_path=lrc_path,
         mp3_path=mp3_path,
         out_path=out_path
+
     )
