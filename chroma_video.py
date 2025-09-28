@@ -113,7 +113,7 @@ def overlay_chroma(bg_path, fg_path, out_path,
     main_ratio = float(main_w) / float(main_h) if main_h != 0 else 1.0
     ratio_str = f"{main_ratio:.9f}"
 
-    zoom_factor = 1.1 
+    zoom_factor = 1
 
     scale_filter = (
         f"scale=if(gt(iw/ih\\,{ratio_str})\\,{main_w}\\,-1):"
