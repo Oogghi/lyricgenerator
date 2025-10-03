@@ -28,7 +28,7 @@ if HAS_DEPS:
         progress = pyqtSignal(str)
         finished = pyqtSignal(bool, str)
 
-        def __init__(self, audio_file, text_file, output_dir, fps, bg_video, chroma_start,
+        def __init__(self, audio_file, text_file, output_dir, fps, shadow, bg_video, chroma_start,
                      chroma_speed, chroma_sim, chroma_blend, font_name, encoder, preset):
             super().__init__()
             self.audio_file = audio_file
