@@ -35,6 +35,7 @@ if HAS_DEPS:
             self.text_file = text_file
             self.output_dir = output_dir
             self.fps = fps
+            self.shadow = shadow
             self.bg_video = bg_video
             self.chroma_start = chroma_start
             self.chroma_speed = chroma_speed
@@ -62,6 +63,7 @@ if HAS_DEPS:
                     lrc_path=lrc_path,
                     out_path=lyrics_video_path,
                     fps=self.fps,
+                    shadow=self.shadow,
                     font_gui=self.font_name
                 )
 
@@ -251,6 +253,11 @@ class KaraokeApp(QWidget):
         self.fps_input.setValue(60)
         h_params1.addWidget(self.fps_input)
 
+        h_params1.addWidget(QLabel("Décalage de l'ombre :"))
+        self.shadow_input = QSpinBox()
+        self.shadow_input.setValue(7)
+        h_params1.addWidget(self.shadow_input)
+
         h_params1.addWidget(QLabel("Début de la vidéo de fond (s) :"))
         self.chroma_start_input = QLineEdit("15.0")
         self.chroma_start_input.setStyleSheet("background-color: #222; padding: 6px; border-radius: 4px;")
@@ -404,6 +411,12 @@ class KaraokeApp(QWidget):
             except Exception:
                 pass
 
+            # numériques / spinbox
+            try:
+                self.shadow_input.setValue(int(s.get("shadow", self.shadow_input.value())))
+            except Exception:
+                pass
+
             # chroma params (gardés en string)
             self.chroma_start_input.setText(s.get("chroma_start", self.chroma_start_input.text()))
             self.chroma_speed_input.setText(s.get("chroma_speed", self.chroma_speed_input.text()))
@@ -430,6 +443,7 @@ class KaraokeApp(QWidget):
                 "output_input": self.output_input.text().strip(),
                 "bg_input": self.bg_input.text().strip(),
                 "fps": self.fps_input.value(),
+                "shadow": self.shadow_input.value(),
                 "chroma_start": self.chroma_start_input.text().strip(),
                 "chroma_speed": self.chroma_speed_input.text().strip(),
                 "chroma_sim": self.chroma_sim_input.text().strip(),
@@ -725,6 +739,7 @@ class KaraokeApp(QWidget):
             text_file=temp_txt,
             output_dir=out_dir,
             fps=self.fps_input.value(),
+            shadow=self.shadow_input.value(),
             bg_video=self.bg_input.text().strip() or None,
             chroma_start=chroma_start,
             chroma_speed=chroma_speed,

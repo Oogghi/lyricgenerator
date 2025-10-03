@@ -155,9 +155,9 @@ def layout_text(words, font):
     pages = paginate_lines(text_lines)
     return word_positions, text_lines, pages
 
-def draw_text_frame(word_positions, text_lines, pages, current_time, font):
+def draw_text_frame(word_positions, text_lines, pages, current_time, font, shadow=7):
     SHADOW_COLOR = (255,255,255)
-    SHADOW_OFFSET = 4
+    SHADOW_OFFSET = shadow
 
     img = Image.new("RGB", VIDEO_SIZE, BG_COLOR)
     img_rgba = img.convert("RGBA")
@@ -215,7 +215,7 @@ def draw_text_frame(word_positions, text_lines, pages, current_time, font):
     return np.array(img_rgba.convert("RGB"))
 
 # ========== MAIN FUNCTION ==========
-def generate_lyrics_video(mp3_path, lrc_path, out_path, fps=DEFAULT_FPS, font_gui=FONT_NAME):
+def generate_lyrics_video(mp3_path, lrc_path, out_path, fps=DEFAULT_FPS, font_gui=FONT_NAME, shadow=7):
     y,sr = librosa.load(mp3_path, sr=None)
     duration = librosa.get_duration(y=y,sr=sr)
 
@@ -240,7 +240,7 @@ def generate_lyrics_video(mp3_path, lrc_path, out_path, fps=DEFAULT_FPS, font_gu
 
     for i in range(num_frames):
         current_time = i/fps
-        frame_np = draw_text_frame(word_positions, text_lines, pages, current_time, font)
+        frame_np = draw_text_frame(word_positions, text_lines, pages, current_time, font, shadow)
         frame = av.VideoFrame.from_ndarray(frame_np, format="rgb24")
         for packet in stream.encode(frame):
             container.mux(packet)
